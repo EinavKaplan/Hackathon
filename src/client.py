@@ -39,7 +39,7 @@ def connect_to_server(server_port, server_ip):
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     try:
         client_socket.connect((server_ip, server_port))
-        client_socket.send(team_name)
+        client_socket.send(team_name.encode('UTF-8'))
         return client_socket
     except socket.error:
         client_socket.close()
