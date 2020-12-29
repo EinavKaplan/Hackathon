@@ -23,13 +23,14 @@ def client_main():
 
 def wait_for_offer():
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    client_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     client_socket.bind(("", UDP_PORT))
     while True:
         offer, server_address = client_socket.recvfrom(4096)
         (cookie, msg_type, server_port) = struct.unpack('LBH', offer)
         if offer_is_valid(cookie, msg_type):
             client_socket.close()
-            return server_port, server_address[0]
+            return server_port, "127.0.1.1" # server_address[0]
 
 
 # check the msg - magic cookie , msg type port
@@ -42,12 +43,12 @@ def offer_is_valid(cookie, msg_type):
 def connect_to_server(server_port, server_ip):
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     try:
-        print("Received offer from "+server_ip+"."+server_port+", attempting to connect...\n")
+        print("Received offer from {} attempting to connect...\n".format(server_ip))
         client_socket.connect((server_ip, server_port))
-        client_socket.sendall(team_name.encode('UTF-8'))  # sendall?
+        client_socket.sendall(team_name.encode('UTF-8'))
         return client_socket
     except socket.error:
-        close_tcp(client_socket)
+        print(socket.error)
         return None
 
 

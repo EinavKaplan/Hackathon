@@ -24,12 +24,13 @@ def server_main():
         connect_client_thread.start()
         broadcast_offer_thread.join()
         connect_client_thread.join()
-
         game_mode()
+        print("Game over, sending out offer request")
 
 
 def sending_offers():
     server_udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    server_udp_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     server_udp_socket.bind(('', SOURCE_PORT))
     offer = struct.pack('LBH', 0xfeedbeef, 0x2, SOURCE_PORT)
     for i in range(10):
@@ -39,10 +40,11 @@ def sending_offers():
 
 def connecting_clients(server_tcp_socket):
     groups_divider = 0
-    server_tcp_socket.listen(1)
+    server_tcp_socket.listen()
     while 1:
         connection_socket, client_address = server_tcp_socket.accept()
         team_name = connection_socket.recv(1024)
+        # print(team_name)
         if groups_divider == 0:
             team_thread = Thread(target=collect_chars, args=(connection_socket, 1))
             TEAMS_THREADS_GROUP1.append((team_thread, 1, team_name, connection_socket))
@@ -111,3 +113,6 @@ def game_mode():
         team[3].send(game_over_message)
         team[3].close()
 
+
+if __name__ == "__main__":
+    server_main()
