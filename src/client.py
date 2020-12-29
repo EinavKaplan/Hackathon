@@ -1,9 +1,13 @@
 import socket
 import struct
-import msvcrt
+from select import select
+import sys
+import getch
+import time
+from threading import Thread
 
 
-team_name = "shirnav"
+team_name = "shirnav\n"
 UDP_PORT = 13117
 
 
@@ -38,36 +42,55 @@ def offer_is_valid(cookie, msg_type):
 def connect_to_server(server_port, server_ip):
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     try:
+        print("Received offer from "+server_ip+"."+server_port+", attempting to connect...\n")
         client_socket.connect((server_ip, server_port))
-        client_socket.send(team_name.encode('UTF-8'))
+        client_socket.sendall(team_name.encode('UTF-8'))  # sendall?
         return client_socket
     except socket.error:
-        client_socket.close()
+        close_tcp(client_socket)
         return None
 
 
 def game_mode(client_socket):
     welcome_msg = client_socket.recv(1024)
     print(welcome_msg)
-    client_socket.setblocking(0)  # the socket now is non blocking
+    # stop_thread = False
+    # sending_keys = Thread(target=send_key, args=((lambda: stop_thread), client_socket))
+    # sending_keys.start()
+    # time.sleep(10)
+    # stop_thread = True
+    # msg = client_socket.recv(2048)
+    # print(msg)
+    client_socket.setblocking(0)
     game_over = False
     while not game_over:
-        while not msvcrt.kbhit():
-            try:
-                msg = client_socket.recv(2048)
-                if not msg:
-                    game_over = True
-                    break
-                print(msg)
-            except socket.error:
-                continue
-        if not game_over:
-            send_key(msvcrt.getch(), client_socket)
-    print("Server disconnected, listening for offer requests...")
+        try:
+            msg = client_socket.recv(2048)
+            if not msg:
+                game_over = True
+                break
+            print(msg)
+        except socket.error:
+            pass
+        if not game_over and kbhit():
+            client_socket.sendall(getch.getch().encode())
+    close_tcp(client_socket)
+    print("Server disconnected, listening for offer requests...\n")
 
 
-def send_key(key, client_socket):
-    client_socket.send(key)
+# def send_key(stop, client_socket):
+#     while not stop():
+#         client_socket.sendall(getch.getch().encode())
+
+
+def kbhit():
+    dr, dw, de = select([sys.stdin], [], [], 0)
+    return dr == 0
+
+
+def close_tcp(client_socket):
+    client_socket.shutdown(socket.SHUT_RDWR)
+    client_socket.close()
 
 
 if __name__ == "__main__":
