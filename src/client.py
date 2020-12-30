@@ -62,10 +62,13 @@ def game_mode(client_socket):
             if not msg:
                 game_over = True
                 break
-            print(msg)
+            else:
+                print(msg)
+                game_over = True  # ?
+                break  # ?
         except socket.error:
             pass
-        if not game_over and not kbhit():  # its stuck on the getch?
+        if not game_over and not kbhit():
             try:
                 client_socket.sendall(getch.getch().encode("UTF-8"))
             except socket.error:

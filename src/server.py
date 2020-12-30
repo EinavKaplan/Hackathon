@@ -10,7 +10,7 @@ TEAMS_THREADS_GROUP2 = []
 COUNTER_GROUP1 = 0
 COUNTER_GROUP2 = 0
 SOURCE_IP = socket.gethostbyname(socket.gethostname())
-SOURCE_PORT = 2810
+SOURCE_PORT = 2066
 lock = Lock()
 
 
@@ -93,7 +93,7 @@ def collect_chars(connection_socket, group_num):
         elapsed = time.time() - start_time
         try:
             key = connection_socket.recv(1024).decode("UTF-8")
-            print("collecting char: {}".format(key))
+            print("got key:{}".format(key))
             if group_num == 1:
                 global COUNTER_GROUP1
                 lock.acquire()
@@ -104,8 +104,7 @@ def collect_chars(connection_socket, group_num):
                 lock.acquire()
                 COUNTER_GROUP2 += 1
                 lock.release()
-        except socket.error:
-            print("no char recv")
+        except:
             pass
 
 
