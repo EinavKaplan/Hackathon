@@ -10,7 +10,8 @@ TEAMS_THREADS_GROUP2 = []
 COUNTER_GROUP1 = 0
 COUNTER_GROUP2 = 0
 SOURCE_IP = socket.gethostbyname(socket.gethostname())
-SOURCE_PORT = 1510
+SOURCE_PORT = 1910
+lock = Lock()
 
 
 def server_main():
@@ -20,8 +21,8 @@ def server_main():
     while True:
         broadcast_offer_thread = Thread(target=sending_offers, args=())
         connect_client_thread = Thread(target=connecting_clients, args=(server_tcp_socket,))
-        broadcast_offer_thread.start()
         connect_client_thread.start()
+        broadcast_offer_thread.start()
         broadcast_offer_thread.join()
         connect_client_thread.join()
         game_mode()
@@ -95,14 +96,14 @@ def collect_chars(connection_socket, group_num):
             print("collecting char: {}".format(key))
             if group_num == 1:
                 global COUNTER_GROUP1
-                Lock().acquire()
+                lock.acquire()
                 COUNTER_GROUP1 += 1
-                Lock().release()
+                lock.release()
             else:
                 global COUNTER_GROUP2
-                Lock().acquire()
+                lock.acquire()
                 COUNTER_GROUP2 += 1
-                Lock.release()
+                lock.release()
         except socket.error:
             print("no char recv")
             pass
@@ -131,17 +132,6 @@ Group {winners} wins!\nCongratulations to the winners:\n==\n{winning_group}""".f
     for team in all_teams:
         team[3].send(game_over_message.encode("UTF-8"))
         team[3].close()
-
-
-def reset():
-    global TEAMS_THREADS_GROUP1
-    TEAMS_THREADS_GROUP1 = []
-    global TEAMS_THREADS_GROUP2
-    TEAMS_THREADS_GROUP2 = []
-    global COUNTER_GROUP1
-    COUNTER_GROUP1 = 0
-    global COUNTER_GROUP2
-    COUNTER_GROUP2 = 0
 
 
 if __name__ == "__main__":
