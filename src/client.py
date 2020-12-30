@@ -18,6 +18,7 @@ def client_main():
         client_socket = connect_to_server(server_port, server_ip)
         if client_socket is None:
             continue
+        print("connected to server")
         game_mode(client_socket)
 
 
@@ -53,7 +54,7 @@ def connect_to_server(server_port, server_ip):
 
 
 def game_mode(client_socket):
-    welcome_msg = client_socket.recv(1024)
+    welcome_msg = client_socket.recv(1024).decode("UTF-8")
     print(welcome_msg)
     # stop_thread = False
     # sending_keys = Thread(target=send_key, args=((lambda: stop_thread), client_socket))
@@ -66,7 +67,7 @@ def game_mode(client_socket):
     game_over = False
     while not game_over:
         try:
-            msg = client_socket.recv(2048)
+            msg = client_socket.recv(1024).decode("UTF-8")
             if not msg:
                 game_over = True
                 break
@@ -74,7 +75,7 @@ def game_mode(client_socket):
         except socket.error:
             pass
         if not game_over and kbhit():
-            client_socket.sendall(getch.getch().encode())
+            client_socket.sendall(getch.getch().encode("UTF-8"))
     close_tcp(client_socket)
     print("Server disconnected, listening for offer requests...\n")
 
