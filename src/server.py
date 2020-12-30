@@ -92,6 +92,7 @@ def collect_chars(connection_socket, group_num):
         elapsed = time.time() - start_time
         try:
             key = connection_socket.recv(1024).decode("UTF-8")
+            print("collecting char: {}".format(key))
             if group_num == 1:
                 global COUNTER_GROUP1
                 Lock().acquire()
@@ -102,8 +103,7 @@ def collect_chars(connection_socket, group_num):
                 Lock().acquire()
                 COUNTER_GROUP2 += 1
                 Lock.release()
-            print("collecting char: {}".format(key))
-        except:
+        except socket.error:
             print("no char recv")
             pass
 

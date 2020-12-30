@@ -18,7 +18,6 @@ def client_main():
         client_socket = connect_to_server(server_port, server_ip)
         if client_socket is None:
             continue
-        print("connected to server")
         game_mode(client_socket)
 
 
@@ -31,7 +30,7 @@ def wait_for_offer():
         (cookie, msg_type, server_port) = struct.unpack('LBH', offer)
         if offer_is_valid(cookie, msg_type):
             client_socket.close()
-            return server_port, "127.0.1.1" # server_address[0]
+            return server_port, "127.0.1.1"  # server_address[0]
 
 
 # check the msg - magic cookie , msg type port
@@ -49,20 +48,12 @@ def connect_to_server(server_port, server_ip):
         client_socket.sendall(team_name.encode('UTF-8'))
         return client_socket
     except socket.error:
-        print(socket.error)
         return None
 
 
 def game_mode(client_socket):
     welcome_msg = client_socket.recv(1024).decode("UTF-8")
     print(welcome_msg)
-    # stop_thread = False
-    # sending_keys = Thread(target=send_key, args=((lambda: stop_thread), client_socket))
-    # sending_keys.start()
-    # time.sleep(10)
-    # stop_thread = True
-    # msg = client_socket.recv(2048)
-    # print(msg)
     client_socket.setblocking(0)
     game_over = False
     while not game_over:
@@ -74,15 +65,13 @@ def game_mode(client_socket):
             print(msg)
         except socket.error:
             pass
-        if not game_over and kbhit():
-            client_socket.sendall(getch.getch().encode("UTF-8"))
-    close_tcp(client_socket)
+        if not game_over and not kbhit():  # its stuck on the getch?
+            try:
+                client_socket.sendall(getch.getch().encode("UTF-8"))
+            except socket.error:
+                pass
+    client_socket.close()
     print("Server disconnected, listening for offer requests...\n")
-
-
-# def send_key(stop, client_socket):
-#     while not stop():
-#         client_socket.sendall(getch.getch().encode())
 
 
 def kbhit():
