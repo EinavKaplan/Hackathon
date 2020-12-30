@@ -10,7 +10,7 @@ TEAMS_THREADS_GROUP2 = []
 COUNTER_GROUP1 = 0
 COUNTER_GROUP2 = 0
 SOURCE_IP = socket.gethostbyname(socket.gethostname())
-SOURCE_PORT = 1910
+SOURCE_PORT = 2810
 lock = Lock()
 
 
@@ -114,8 +114,9 @@ def game_mode():
     for team in all_teams:
         if team[0]:
             team[0].start()
+    for team in all_teams:
+        if team[0]:
             team[0].join()
-    time.sleep(10)
     winners = 0
     group_names = ""
     if COUNTER_GROUP1 > COUNTER_GROUP2:
@@ -132,17 +133,6 @@ Group {winners} wins!\nCongratulations to the winners:\n==\n{winning_group}""".f
     for team in all_teams:
         team[3].send(game_over_message.encode("UTF-8"))
         team[3].close()
-
-
-def reset():
-    global TEAMS_THREADS_GROUP1
-    TEAMS_THREADS_GROUP1 = []
-    global TEAMS_THREADS_GROUP2
-    TEAMS_THREADS_GROUP2 = []
-    global COUNTER_GROUP1
-    COUNTER_GROUP1 = 0
-    global COUNTER_GROUP2
-    COUNTER_GROUP2 = 0
 
 
 if __name__ == "__main__":
