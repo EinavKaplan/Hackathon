@@ -4,12 +4,14 @@ from threading import Thread, Lock
 import time
 from scapy.arch import get_if_addr
 
-DEST_PORT = 13117 #13117
+
+buff_len = 1024
+DEST_PORT = 13117
 TEAMS_THREADS_GROUP1 = []
 TEAMS_THREADS_GROUP2 = []
 COUNTER_GROUP1 = 0
 COUNTER_GROUP2 = 0
-SOURCE_IP = get_if_addr("eth1")
+SOURCE_IP = get_if_addr('eth1')
 SOURCE_PORT = 2066
 lock = Lock()
 
@@ -47,14 +49,14 @@ def connecting_clients(server_tcp_socket):
     start_time = time.time()
     elapsed = 0
     while elapsed < 10:
-        elapsed = time.time()-start_time
+        elapsed = time.time() - start_time
         try:
             connection_socket, client_address = server_tcp_socket.accept()
             connection_socket.settimeout(1.0)
             got_team_name = False
             while not got_team_name:
                 try:
-                    team_name = connection_socket.recv(1024).decode("UTF-8")
+                    team_name = connection_socket.recv(buff_len).decode("UTF-8")
                     got_team_name = True
                     if groups_divider == 0:
                         team_thread = Thread(target=collect_chars, args=(connection_socket, 1))
@@ -78,22 +80,22 @@ def get_group_names(group_list):
     names = ""
     for t in group_list:
         x, y, name, z = t
-        names = names+name
+        names = names + name
     return names
 
 
 def collect_chars(connection_socket, group_num):
     welcome_message = """Welcome to Keyboard Spamming Battle Royale.\nGroup 1:\n==\n{group1_names}\nGroup 2:\n==
     {group2_names}\nStart pressing keys on your keyboard as fast as you can!!"""\
-        .format(group1_names=get_group_names(TEAMS_THREADS_GROUP1), group2_names=get_group_names(TEAMS_THREADS_GROUP2))
+        .format(group1_names=get_group_names(TEAMS_THREADS_GROUP1),
+                group2_names=get_group_names(TEAMS_THREADS_GROUP2))
     connection_socket.send(welcome_message.encode("UTF-8"))
     start_time = time.time()
     elapsed = 0
     while elapsed < 10:
         elapsed = time.time() - start_time
         try:
-            key = connection_socket.recv(1024).decode("UTF-8")
-            # print("got key:{}".format(key))
+            key = connection_socket.recv(buff_len).decode("UTF-8")
             if group_num == 1:
                 global COUNTER_GROUP1
                 lock.acquire()

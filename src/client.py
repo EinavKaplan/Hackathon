@@ -3,15 +3,14 @@ import struct
 from select import select
 import sys
 import getch
-import ctypes
-import time
-from threading import Thread
 from scapy.arch import get_if_addr
 
 
+buff_len = 1024
 team_name = "shirnav\n"
-UDP_PORT = 13117 #13117
+UDP_PORT = 13117
 SERVER_IP = ""
+
 
 def client_main():
     print("Client started, listening for offer requests...")
@@ -28,7 +27,7 @@ def wait_for_offer():
     client_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     client_socket.bind(("", UDP_PORT))
     while True:
-        offer, server_address = client_socket.recvfrom(1024)
+        offer, server_address = client_socket.recvfrom(buff_len)
         global SERVER_IP
         SERVER_IP = server_address[0]
         if SERVER_IP == "127.0.0.1":  # local host 
@@ -40,7 +39,6 @@ def wait_for_offer():
                 return server_port, SERVER_IP
         except:
             pass
-      
 
 
 # check the msg - magic cookie , msg type port
@@ -53,7 +51,7 @@ def offer_is_valid(cookie, msg_type):
 def connect_to_server(server_port, server_ip):
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     try:
-        print("Received offer from {} {} attempting to connect...\n".format(server_ip,server_port))
+        print("Received offer from {} attempting to connect...\n".format(server_ip))
         client_socket.connect((server_ip, server_port))
         client_socket.sendall(team_name.encode('UTF-8'))
         return client_socket
@@ -62,20 +60,20 @@ def connect_to_server(server_port, server_ip):
 
 
 def game_mode(client_socket):
-    welcome_msg = client_socket.recv(1024).decode("UTF-8")
+    welcome_msg = client_socket.recv(buff_len).decode("UTF-8")
     print(welcome_msg)
     client_socket.setblocking(0)
     game_over = False
     while not game_over:
         try:
-            msg = client_socket.recv(1024).decode("UTF-8")
+            msg = client_socket.recv(buff_len).decode("UTF-8")
             if not msg:
                 game_over = True
                 break
             else:
                 print(msg)
-                game_over = True  # ?
-                break  # ?
+                game_over = True
+                break
         except socket.error:
             pass
         if not game_over and not kbhit():
