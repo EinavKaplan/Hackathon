@@ -10,14 +10,14 @@ TEAMS_THREADS_GROUP2 = []
 COUNTER_GROUP1 = 0
 COUNTER_GROUP2 = 0
 SOURCE_IP = socket.gethostbyname(socket.gethostname())
-SOURCE_PORT = 1810
+SOURCE_PORT = 1510
 
 
 def server_main():
     print("Server started, listening on IP address {ip}".format(ip=SOURCE_IP))
+    server_tcp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server_tcp_socket.bind((SOURCE_IP, SOURCE_PORT))
     while True:
-        server_tcp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        server_tcp_socket.bind((SOURCE_IP, SOURCE_PORT))
         broadcast_offer_thread = Thread(target=sending_offers, args=())
         connect_client_thread = Thread(target=connecting_clients, args=(server_tcp_socket,))
         broadcast_offer_thread.start()
@@ -25,7 +25,8 @@ def server_main():
         broadcast_offer_thread.join()
         connect_client_thread.join()
         game_mode()
-        print("Game over, sending out offer request")
+        print("Game over, sending out offer request...")
+        reset()
 
 
 def sending_offers():
@@ -110,8 +111,9 @@ def collect_chars(connection_socket, group_num):
 def game_mode():
     all_teams = TEAMS_THREADS_GROUP1 + TEAMS_THREADS_GROUP2
     for team in all_teams:
-        team[0].start()
-        team[0].join()
+        if team[0]:
+            team[0].start()
+            team[0].join()
     time.sleep(10)
     winners = 0
     group_names = ""
@@ -129,6 +131,17 @@ Group {winners} wins!\nCongratulations to the winners:\n==\n{winning_group}""".f
     for team in all_teams:
         team[3].send(game_over_message.encode("UTF-8"))
         team[3].close()
+
+
+def reset():
+    global TEAMS_THREADS_GROUP1
+    TEAMS_THREADS_GROUP1 = []
+    global TEAMS_THREADS_GROUP2
+    TEAMS_THREADS_GROUP2 = []
+    global COUNTER_GROUP1
+    COUNTER_GROUP1 = 0
+    global COUNTER_GROUP2
+    COUNTER_GROUP2 = 0
 
 
 if __name__ == "__main__":
