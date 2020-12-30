@@ -2,14 +2,14 @@ import socket
 import struct
 from threading import Thread, Lock
 import time
+from scapy.arch import get_if_addr
 
-
-DEST_PORT = 13117
+DEST_PORT = 13117 #13117
 TEAMS_THREADS_GROUP1 = []
 TEAMS_THREADS_GROUP2 = []
 COUNTER_GROUP1 = 0
 COUNTER_GROUP2 = 0
-SOURCE_IP = socket.gethostbyname(socket.gethostname())
+SOURCE_IP = get_if_addr("eth1")
 SOURCE_PORT = 2066
 lock = Lock()
 
@@ -93,7 +93,7 @@ def collect_chars(connection_socket, group_num):
         elapsed = time.time() - start_time
         try:
             key = connection_socket.recv(1024).decode("UTF-8")
-            print("got key:{}".format(key))
+            # print("got key:{}".format(key))
             if group_num == 1:
                 global COUNTER_GROUP1
                 lock.acquire()
