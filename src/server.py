@@ -135,5 +135,16 @@ Group {winners} wins!\nCongratulations to the winners:\n==\n{winning_group}""".f
         team[3].close()
 
 
+def reset():
+    global TEAMS_THREADS_GROUP1
+    TEAMS_THREADS_GROUP1 = []
+    global TEAMS_THREADS_GROUP2
+    TEAMS_THREADS_GROUP2 = []
+    global COUNTER_GROUP1
+    COUNTER_GROUP1 = 0
+    global COUNTER_GROUP2
+    COUNTER_GROUP2 = 0
+
+
 if __name__ == "__main__":
     server_main()
