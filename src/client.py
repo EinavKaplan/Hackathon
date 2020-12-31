@@ -6,7 +6,10 @@ import getch
 from scapy.arch import get_if_addr
 
 
+# constants
 buff_len = 1024
+MAGIC_COOKIE = 0xfeedbeef
+MESSAGE_TYPE = 0x2
 team_name = "shirnav\n"
 UDP_PORT = 13117
 SERVER_IP = ""
@@ -30,7 +33,7 @@ def wait_for_offer():
         offer, server_address = client_socket.recvfrom(buff_len)
         global SERVER_IP
         SERVER_IP = server_address[0]
-        if SERVER_IP == "127.0.0.1":  # local host 
+        if SERVER_IP == "127.0.0.1":  # local host
             SERVER_IP = get_if_addr("eth1")
         try:
             (cookie, msg_type, server_port) = struct.unpack('LBH', offer)
@@ -43,7 +46,7 @@ def wait_for_offer():
 
 # check the msg - magic cookie , msg type port
 def offer_is_valid(cookie, msg_type):
-    if cookie == 0xfeedbeef and msg_type == 0x2:
+    if cookie == MAGIC_COOKIE and msg_type == MESSAGE_TYPE:
         return True
     return False
 
@@ -51,7 +54,7 @@ def offer_is_valid(cookie, msg_type):
 def connect_to_server(server_port, server_ip):
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     try:
-        print("Received offer from {} attempting to connect...\n".format(server_ip))
+        print("Received offer from {ip} attempting to connect...\n".format(ip=server_ip))
         client_socket.connect((server_ip, server_port))
         client_socket.sendall(team_name.encode('UTF-8'))
         return client_socket
