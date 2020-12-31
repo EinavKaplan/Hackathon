@@ -4,14 +4,17 @@ from threading import Thread, Lock
 import time
 from scapy.arch import get_if_addr
 
-
+# constants
 buff_len = 1024
+MAGIC_COOKIE = 0xfeedbeef
+MESSAGE_TYPE = 0x2
 DEST_PORT = 13117
-TEAMS_THREADS_GROUP1 = []
+# global variables
+TEAMS_THREADS_GROUP1 = []  # (team_thread, team_num, team_name, connection_socket)
 TEAMS_THREADS_GROUP2 = []
 COUNTER_GROUP1 = 0
 COUNTER_GROUP2 = 0
-SOURCE_IP = get_if_addr('eth1')
+SOURCE_IP = get_if_addr('eth1')  # ip development network  # socket.gethostbyname(socket.gethostname())
 SOURCE_PORT = 2066
 lock = Lock()
 
@@ -36,7 +39,7 @@ def sending_offers():
     server_udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     server_udp_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     server_udp_socket.bind(('', SOURCE_PORT))
-    offer = struct.pack('LBH', 0xfeedbeef, 0x2, SOURCE_PORT)
+    offer = struct.pack('LBH', MAGIC_COOKIE, MESSAGE_TYPE, SOURCE_PORT)
     for i in range(10):
         server_udp_socket.sendto(offer, ('', DEST_PORT))
         time.sleep(1)
@@ -78,8 +81,8 @@ def connecting_clients(server_tcp_socket):
 
 def get_group_names(group_list):
     names = ""
-    for t in group_list:
-        x, y, name, z = t
+    for group in group_list:
+        x, y, name, z = group
         names = names + name
     return names
 
@@ -113,24 +116,29 @@ def collect_chars(connection_socket, group_num):
 def game_mode():
     all_teams = TEAMS_THREADS_GROUP1 + TEAMS_THREADS_GROUP2
     for team in all_teams:
-        if team[0]:
-            team[0].start()
+        team[0].start()
     for team in all_teams:
-        if team[0]:
-            team[0].join()
-    winners = 0
-    group_names = ""
+        team[0].join()
     if COUNTER_GROUP1 > COUNTER_GROUP2:
-        winners = 1
-        group_names = get_group_names(TEAMS_THREADS_GROUP1)
+        game_over_message = """\tGame over!
+    Group 1 typed in {counter1} characters. Group 2 typed in {counter2} characters.
+    Group {winners} wins!\nCongratulations to the winners:\n==\n{winning_group}"""\
+        .format(counter1=COUNTER_GROUP1,
+                counter2=COUNTER_GROUP2,
+                winners=1,
+                winning_group=get_group_names(TEAMS_THREADS_GROUP1))
     elif COUNTER_GROUP1 < COUNTER_GROUP2:
-        winners = 2
-        group_names = get_group_names(TEAMS_THREADS_GROUP2)
-    game_over_message = """Game over!\nGroup 1 typed in {counter1} characters. Group 2 typed in {counter2} characters.
-Group {winners} wins!\nCongratulations to the winners:\n==\n{winning_group}""".format(counter1=COUNTER_GROUP1,
-                                                                                      counter2=COUNTER_GROUP2,
-                                                                                      winners=winners,
-                                                                                      winning_group=group_names)
+        game_over_message = """\tGame over!
+    Group 1 typed in {counter1} characters. Group 2 typed in {counter2} characters.
+    Group {winners} wins!\nCongratulations to the winners:\n==\n{winning_group}"""\
+        .format(counter1=COUNTER_GROUP1,
+                counter2=COUNTER_GROUP2,
+                winners=2,
+                winning_group=get_group_names(TEAMS_THREADS_GROUP2))
+    else:
+        game_over_message = """\tGame over!
+        Group 1 typed in {counter1} characters. Group 2 typed in {counter2} characters. 
+        It's a tie!"""
     for team in all_teams:
         team[3].send(game_over_message.encode("UTF-8"))
         team[3].close()
