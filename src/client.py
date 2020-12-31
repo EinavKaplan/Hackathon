@@ -33,8 +33,6 @@ def wait_for_offer():
         offer, server_address = client_socket.recvfrom(buff_len)
         global SERVER_IP
         SERVER_IP = server_address[0]
-        if SERVER_IP == "127.0.0.1":  # local host
-            SERVER_IP = get_if_addr("eth1")
         try:
             (cookie, msg_type, server_port) = struct.unpack('LBH', offer)
             if offer_is_valid(cookie, msg_type):
